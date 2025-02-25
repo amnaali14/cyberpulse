@@ -1,21 +1,199 @@
+/* globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: 'Roboto Mono', monospace; 
+  background-color: #0F172A; 
+  color: #E5E7EB; 
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+nav {
+  background-color: #1E293B; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+nav a {
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #A3E635;
+}
+
+header {
+  background: linear-gradient(135deg, #111827, #1F2937);
+  padding: 10rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden; 
+}
+
+header h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #A3E635; 
+  text-shadow: 0 0 10px rgba(163, 230, 53, 0.7);
+  animation: fadeInDown 1s ease-out;
+}
+
+header p {
+  font-size: 1.5rem;
+  margin-bottom: 3rem;
+  color: #D1D5DB;
+  animation: fadeInUp 1s ease-out;
+}
+
+header input[type="text"] {
+  background-color: #374151;
+  border: none;
+  border-radius: 0.375rem 0 0 0.375rem;
+  color: #E5E7EB;
+  padding: 1rem 1.5rem;
+  width: 28rem;
+}
+
+header button {
+  background-color: #A3E635; 
+  border: none;
+  border-radius: 0 0.375rem 0.375rem 0;
+  color: #111827;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+header button:hover {
+  background-color: #84CC16;
+  transform: scale(1.05);
+}
+
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 3rem;
+}
+
+.vulnerability-item {
+  background-color: #1F2937;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.vulnerability-item:hover {
+  transform: translateY(-5px);
+}
+
+.vulnerability-item h3 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #A3E635;
+}
+
+.vulnerability-item p {
+  margin-bottom: 0.75rem;
+}
+
+.vulnerability-item pre {
+  background-color: #374151;
+  border-radius: 0.375rem;
+  padding: 1.25rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+footer {
+  background-color: #1E293B;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+footer a {
+  color: #E5E7EB;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: #A3E635;
+}
+
+.severity-high {
+  color: #F87171;
+}
+
+.severity-medium {
+  color: #FBBF24; 
+}
+
+.severity-low {
+  color: #6EE7B7; 
+}
+
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #A3E635;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+.cyber-pattern {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-image: url('/cyber_pattern.svg'); 
+  opacity: 0.1;
+  pointer-events: none;
+  animation: cyberPatternMove 20s linear infinite;
+}
+
+@keyframes cyberPatternMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.highlighted{
+    background-color: rgba(163, 230, 53, 0.2);
+}
+

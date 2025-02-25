@@ -1,100 +1,153 @@
+'use client';
+
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const containerRef = useRef(null);
+  const [githubRepo, setGithubRepo] = useState('');
+  const [analysisResults, setAnalysisResults] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const handleScroll = () => {
+      if (containerRef.current) {
+        const scrollY = window.scrollY;
+        const translateY = scrollY * 0.2;
+        containerRef.current.style.transform = `translateY(${translateY}px)`;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleGitHubAnalysis = async () => {
+    setIsLoading(true);
+    // Simulate GitHub code fetching and analysis (replace with actual API call)
+    setTimeout(() => {
+      setAnalysisResults({
+        vulnerabilities: [
+          {
+            id: 1,
+            description: 'Buffer overflow in function X',
+            severity: 'High',
+            cwe: 'CWE-120',
+            cve: 'CVE-2023-1234',
+            codeSnippet: 'char buffer[10]; strcpy(buffer, userInput);',
+            patch: 'Replace strcpy with strncpy and add bounds checking.',
+            vulnerabilityType: 'Buffer Overflow',
+          },
+          {
+            id: 2,
+            description: 'SQL injection vulnerability',
+            severity: 'Medium',
+            cwe: 'CWE-89',
+            cve: 'CVE-2023-5678',
+            codeSnippet: "SELECT * FROM users WHERE username = '" + "userInput" + "'",
+            patch: 'Use parameterized queries or prepared statements.',
+            vulnerabilityType: 'SQL Injection',
+          },
+        ],
+      });
+      setIsLoading(false);
+    }, 2000); // Simulate 2 seconds of analysis
+  };
+
+  return (
+    <div className="bg-gray-900 text-white font-sans min-h-screen flex flex-col overflow-x-hidden">
+      <nav className="bg-gray-800 p-4 flex justify-between items-center shadow-md">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center">
+            <Image src="/cyberpulse_logo1.png" alt="CyberPulse Logo" width={40} height={40} />
+            <span className="text-xl font-semibold ml-2">CyberPulse</span>
+          </Link>
         </div>
+        <div>
+          <Link href="/contact" className="mr-4 hover:text-gray-300 transition-colors duration-200">Contact Us</Link>
+          <Link href="/blog" className="mr-4 hover:text-gray-300 transition-colors duration-200">Blog</Link>
+          <Link href="/login" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">Login</Link>
+        </div>
+      </nav>
+
+      <main className="flex-grow relative" ref={containerRef}>
+        <header className="relative py-24 text-center bg-cover bg-center" style={{ backgroundImage: "url('/cybersecurity_background.jpg')" }}>
+          <div className="absolute inset-0 bg-black opacity-50"></div>
+          <div className="relative z-10">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white">Detect Vulnerabilities Instantly</h1>
+            <p className="text-xl md:text-2xl mb-10 text-gray-200">Analyze your code for security flaws with ease.</p>
+            <div className="flex justify-center">
+              <input
+                type="text"
+                placeholder="Enter GitHub Repository URL"
+                value={githubRepo}
+                onChange={(e) => setGithubRepo(e.target.value)}
+                className="bg-gray-800 p-3 rounded-l-md text-white w-96"
+              />
+              <button
+                onClick={handleGitHubAnalysis}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-r-md"
+              >
+                Analyze
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section className="container mx-auto py-12 relative z-10">
+          {isLoading && <div className="text-center">Loading...</div>}
+
+          {analysisResults && (
+            <div className="mt-8">
+              <h2 className="text-3xl font-semibold mb-6">Analysis Results</h2>
+              {analysisResults.vulnerabilities.map((vulnerability) => (
+                <div key={vulnerability.id} className="bg-gray-800 p-4 rounded-lg mb-4">
+                  <h3 className="text-xl font-semibold mb-2">{vulnerability.description}</h3>
+                  <p className="text-gray-400">Severity: {vulnerability.severity}</p>
+                  <p className="text-gray-400">CWE: {vulnerability.cwe}</p>
+                  <p className="text-gray-400">CVE: {vulnerability.cve}</p>
+                  <p className="text-gray-400">Vulnerability Type: {vulnerability.vulnerabilityType}</p>
+                  <pre className="bg-gray-700 p-2 rounded mt-2 overflow-x-auto">
+                    {vulnerability.codeSnippet}
+                  </pre>
+                  <p className="text-gray-400 mt-2">Suggested Patch: {vulnerability.patch}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="container mx-auto py-12 relative z-10">
+          <h2 className="text-3xl font-semibold mb-6 text-center">Key Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4">CWE/CVE Reports</h3>
+              <p className="text-gray-400">View detailed reports for Common Weakness Enumerations (CWE) and Common Vulnerabilities and Exposures (CVE).</p>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4">Patch Generation</h3>
+              <p className="text-gray-400">Automatically generate patches to fix detected vulnerabilities in your C/C++ code.</p>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4">Severity Indication</h3>
+              <p className="text-gray-400">Clearly indicate the severity of each vulnerability to prioritize remediation efforts.</p>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4">Vulnerability Types</h3>
+              <p className="text-gray-400">Correctly identify and display the different types of vulnerabilities found in your code.</p>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="bg-gray-800 p-4 text-center mt-8">
+        <p>
+          <a href="https://www.cyberpulse.com" className="text-white hover:underline">
+            &copy; 2025 CyberPulse
+          </a>
+          . All rights reserved.
+        </p>
       </footer>
     </div>
   );
