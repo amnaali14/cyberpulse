@@ -1,104 +1,93 @@
 'use client';
 
-import { useState } from 'react';
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function Contact() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+    const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+    const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Simulate form submission (replace with actual API call)
-    console.log('Form submitted:', { name, email, message });
-    setIsSubmitted(true);
-    // Reset form
-    setName('');
-    setEmail('');
-    setMessage('');
-  };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-300 to-blue-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
-        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-          <div className="max-w-md mx-auto">
-            <div>
-              <h1 className="text-2xl font-bold text-black">Contact Us</h1>
-            </div>
-            {isSubmitted ? (
-              <div className="mt-6 text-green-600">Thank you for your message!</div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                  <form onSubmit={handleSubmit}>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600"
-                        placeholder="Name"
-                        required
-                      />
-                      <label
-                        htmlFor="name"
-                        className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
-                      >
-                        Name
-                      </label>
-                    </div>
-                    <div className="relative mt-4">
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600"
-                        placeholder="Email address"
-                        required
-                      />
-                      <label
-                        htmlFor="email"
-                        className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
-                      >
-                        Email Address
-                      </label>
-                    </div>
-                    <div className="relative mt-4">
-                      <textarea
-                        id="message"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="peer h-20 w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600"
-                        placeholder="Message"
-                        required
-                      />
-                      <label
-                        htmlFor="message"
-                        className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
-                      >
-                        Message
-                      </label>
-                    </div>
-                    <div className="mt-6">
-                      <button
-                        type="submit"
-                        className="w-full px-4 py-2 text-base font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300"
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </form>
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("Form submitted:", formData);
+        setSubmitted(true);
+    };
+
+    return (
+        <div className="bg-gray-900 text-white min-h-screen flex flex-col">
+            {/* Navigation Bar */}
+            <nav className="bg-gray-800 p-4 flex justify-between items-center shadow-md">
+                <Link href="/" className="flex items-center">
+                    <Image src="/cyberpulse_logo1.png" alt="CyberPulse Logo" width={40} height={40} />
+                    <span className="text-xl font-semibold ml-2">CyberPulse</span>
+                </Link>
+                <div className="flex space-x-6">
+                    <Link href="/" className="hover:text-gray-300 transition-colors duration-200">Home</Link>
+                    <Link href="/about" className="hover:text-gray-300 transition-colors duration-200">About</Link>
+                    <Link href="/services" className="hover:text-gray-300 transition-colors duration-200">Services</Link>
+                    <Link href="/contact" className="text-blue-500 font-semibold">Contact</Link>
+                    <Link href="/login" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">Login</Link>
                 </div>
-              </div>
-            )}
-          </div>
+            </nav>
+
+            {/* Contact Section */}
+            <main className="flex-grow flex flex-col justify-center items-center p-6">
+                <h1 className="text-4xl font-bold mb-6">Contact Us</h1>
+                <p className="text-gray-300 mb-8">Have questions or need assistance? Fill out the form below, and we will get back to you soon.</p>
+                
+                {submitted ? (
+                    <p className="text-green-500">Thank you! Your message has been sent.</p>
+                ) : (
+                    <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg w-full max-w-lg">
+                        <div className="mb-4">
+                            <label className="block text-gray-300 mb-2">Name</label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-700 text-white rounded"
+                                required
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-300 mb-2">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-700 text-white rounded"
+                                required
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-300 mb-2">Message</label>
+                            <textarea
+                                name="message"
+                                value={formData.message}
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-700 text-white rounded h-32"
+                                required
+                            ></textarea>
+                        </div>
+                        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded w-full">
+                            Send Message
+                        </button>
+                    </form>
+                )}
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-gray-800 p-6 text-center text-gray-400">
+                <p>&copy; 2025 CyberPulse. All rights reserved.</p>
+            </footer>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

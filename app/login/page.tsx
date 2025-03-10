@@ -94,7 +94,11 @@ const LoginPage = () => {
               {loading ? 'Loading...' : 'NEXT'}
             </button>
           </form>
-
+      
+      
+<p className="mt-4 text-center">
+    Don't have an account? <Link href="/register" className="text-blue-500">Register here</Link>
+</p>
           <div className="text-center mt-6">
             <Link href="#" className="text-gray-400 hover:text-gray-300">Need help signing in?</Link>
           </div>

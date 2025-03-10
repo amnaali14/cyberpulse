@@ -1,131 +1,164 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
-const fs = require('fs');
+const fs = require('fs').promises;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const axios = require('axios'); // Import Axios
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
+const path = require('path');
+const os = require('os');
+const util = require('util');
+const cors = require('cors');
+
+
+const execAsync = util.promisify(exec);
 
 app.use(bodyParser.json());
+app.use(cors());
 
-const SECRET_KEY = 'your-secret-key'; // Replace with a secure key in production
+const hash = await bcrypt.hash("amna123", 10);
+console.log(hash);
 
-// Mock database for users
+const SECRET_KEY = process.env.JWT_SECRET;
+const CLANG_PATH = process.env.CLANG_PATH || 'clang';
+
+
+if (!SECRET_KEY) {
+    console.error('Error: JWT_SECRET environment variable is not set.');
+    process.exit(1);
+}
+
+// Replace with a database!
 const users = [];
 
-// Helper function to generate JWT
 const generateToken = (user) => {
-  return jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+    return jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '1h' });
 };
 
-// Middleware to verify JWT
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Format: "Bearer <token>"
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) {
-    return res.status(401).json({ error: 'Access denied. No token provided.' });
-  }
-
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token.' });
+    if (!token) {
+        return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
-    req.user = user;
-    next();
-  });
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'Invalid or expired token.' });
+        }
+        req.user = user;
+        next();
+    });
 };
 
-// User Registration Endpoint
+// Register endpoint using Axios
 app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  // Check if user already exists
-  const userExists = users.find(u => u.username === username);
-  if (userExists) {
-    return res.status(400).json({ error: 'Username already exists.' });
-  }
-
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Save the user
-  users.push({ username, password: hashedPassword });
-  res.status(201).json({ message: 'User registered successfully.' });
-});
-
-// User Login Endpoint
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  // Find the user
-  const user = users.find(u => u.username === username);
-  if (!user) {
-    return res.status(400).json({ error: 'Invalid username or password.' });
-  }
-
-  // Verify the password
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword) {
-    return res.status(400).json({ error: 'Invalid username or password.' });
-  }
-
-  // Generate and return a JWT
-  const token = generateToken(user);
-  res.json({ token });
-});
-
-// Protected Route: Code Analysis
-app.post('/analyze', authenticateToken, (req, res) => {
-  const { code } = req.body;
-
-  const tempFilePath = 'C:\\Users\\hp pc\\temp.c';
-  fs.writeFileSync(tempFilePath, code, (err) => {
-    if (err) {
-      console.error('Error writing temp file:', err);
-      return res.status(500).json({ error: 'Error writing temp file.' });
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required.' });
     }
 
-    const clangPath = 'C:\\Program Files\\LLVM\\bin\\clang.exe';
-    const clangCommand = `${clangPath} --analyze ${tempFilePath} 2>&1`;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    users.push({ username, password: hashedPassword });
 
-    console.log('clangCommand:', clangCommand);
-    console.log('process.env.PATH:', process.env.PATH); // Log PATH
+    const token = generateToken({ username });
 
-    exec(clangCommand, {
-      cwd: 'C:\\Users\\hp pc\\Downloads',
-      env: { PATH: 'C:\\Program Files\\LLVM\\bin;' + process.env.PATH }, // Explicitly set PATH
-    }, (error, stdout, stderr) => {
-      console.log('stdout:', stdout);
-      console.log('stderr:', stderr);
-
-      if (error) {
-        console.error('Error object:', error);
-        console.error(`Error executing Clang: ${error}`);
-        return res.status(500).json({ error: 'Analysis failed.' });
-      }
-
-      const analysisResults = processClangOutput(stdout);
-
-      res.json({ results: analysisResults });
-
-      fs.unlinkSync(tempFilePath, (err) => {
-        if (err) {
-          console.error('Error deleting temp file:', err);
-        }
-      });
-    });
-  });
+    res.json({ message: 'User registered successfully.', token });
 });
 
-// Helper function to process Clang output
+// Login endpoint using Axios
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(u => u.username === username);
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ error: 'Invalid username or password.' });
+    }
+
+    const token = generateToken(user);
+    res.json({ message: 'Login successful.', token });
+});
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the Clang Backend!');
+});
+
+// Analyze Code API
+app.post('/api/analyze', async (req, res) => {
+    console.log("Request received:", req.body);
+    const { code } = req.body;
+
+    if (!code) {
+        return res.status(400).json({ error: 'Code is required.' });
+    }
+
+    if (code.length > 10000) {
+        return res.status(400).json({ error: 'Code too large.' });
+    }
+
+    const sanitizedCode = code.replace(/[^a-zA-Z0-9\s{};#()+\-*/%&|^~=!<>.,\[\]]/g, '');
+    console.log("Sanitized code:", sanitizedCode);
+
+      sanitizedCode = req.body.code.trim(); // Trim spaces/newlines
+
+    // Check if code contains "int main" or at least a function definition
+    if (!sanitizedCode.includes("int main") && !sanitizedCode.includes("(")) {
+        return res.status(400).json({ error: "Invalid C code. Please provide valid C syntax." });
+    }
+    
+    let tempFilePath;
+    try {
+        tempFilePath = path.join(os.tmpdir(), `temp-${Date.now()}.c`);
+
+        console.log("Temp file path:", tempFilePath);
+await fs.writeFile(tempFilePath, sanitizedCode);
+console.log("File written successfully");
+
+  
+        
+        const clangCommand = `"${CLANG_PATH}" --analyze ${tempFilePath} 2>&1`;
+        console.log("Executing:", clangCommand);
+
+        const { stdout, stderr } = await execAsync(clangCommand);
+        
+        if (stderr) {
+            console.error('Clang stderr:', stderr);
+            return res.status(500).json({ error: 'Clang analysis failed.', details: stderr });
+        }
+
+        const analysisResults = processClangOutput(stdout);
+        
+        // Example: Making an external API request with Axios (if needed)
+        try {
+           await axios.post('http://localhost:3001/api/logs', { results: analysisResults });
+
+            console.log('Log response:', axiosResponse.data);
+        } catch (axiosError) {
+            console.error('Error sending logs:', axiosError.message);
+        }
+
+        res.json({ results: analysisResults });
+
+    } catch (err) {
+        console.error('File operation error:', err);
+        return res.status(500).json({ error: 'Internal server error.' });
+
+    } finally {
+        if (tempFilePath) {
+            fs.unlink(tempFilePath).catch(err => console.error('Error deleting temp file:', err));
+        }
+    }
+});
+
 function processClangOutput(output) {
-  const lines = output.split('\n').filter((line) => line.trim() !== '');
-  return lines;
+    return output.split('\n').filter(line => line.trim() !== '');
 }
 
 app.listen(port, () => {
-  console.log(`Backend listening at http://localhost:${port}`);
+    console.log(`Backend listening at http://localhost:${port}`);
 });
-

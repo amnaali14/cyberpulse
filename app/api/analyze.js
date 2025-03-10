@@ -1,49 +1,38 @@
-// pages/api/analyze.js
-import { exec } from 'child_process';
-import fs from 'fs'; // Import the fs module
-
-export default function handler(req, res) {
-  if (req.method === 'POST') {
-    const { code } = req.body;
-
-    if (!code) {
-      return res.status(400).json({ error: 'Code is required' });
-    }
-
-    const tempFilePath = 'C:\\Users\\hp pc\\temp.c'; // Absolute path for temp file
-
-    // Write the code to a temporary file
-    fs.writeFileSync(tempFilePath, code, (err) => {
-      if (err) {
-        console.error('Error writing temp file:', err);
-        return res.status(500).json({ error: 'Error writing temp file.' });
-      }
-
-      // Run Clang analysis
-      const clangPath = 'C:\\Program Files\\LLVM\\bin\\clang.exe';
-      const clangCommand = `${clangPath} --analyze ${tempFilePath} 2>&1`;
-
-      exec(clangCommand, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Analysis failed:', stderr);
-          return res.status(500).json({ error: 'Analysis failed', details: stderr });
-        }
-
-        // Process the Clang output (simple line-by-line parsing)
-        const analysisResults = stdout.split('\n').filter(line => line.trim() !== '');
-
-        // Send analysis results back to the client
-        res.status(200).json({ results: analysisResults });
-
-        // Delete the temporary file
-        fs.unlinkSync(tempFilePath, (err) => {
-          if (err) {
-            console.error('Error deleting temp file:', err);
-          }
-        });
-      });
+async function analyzeCode(code) {
+    const response = await fetch('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
     });
-  } else {
-    res.status(405).json({ message: 'Method not allowed' });
+  
+    if (!response.ok) {
+      try {
+        const text = await response.text();
+        if (text) {
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+          } catch (jsonError) {
+            throw new Error(`HTTP error! status: ${response.status}, invalid json response`);
+          }
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}, empty response body`);
+        }
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          throw new Error(`HTTP error! status: ${response.status}, invalid json response`);
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}, unknown error`);
+        }
+      }
+    }
+  
+    const data = await response.json();
+    return data;
   }
-}
+  
+  // Example usage:
+  const codeToAnalyze = `#include <stdio.h>\nint main() {\n  int x = 10;\n  printf("%d\\n", x);\n  return 0;\n}`;
+  analyzeCode(codeToAnalyze);
